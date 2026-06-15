@@ -1,4 +1,4 @@
-# Automation-Pipeline-Infrastructure-Guidelines
+# Automation Pipeline-Infrastructure Guidelines
 Azure DevOps pipeline directives for Cypress execution, reporting and environment management. 
 
 # Directivas de Infraestructura Inicial para Automatización
