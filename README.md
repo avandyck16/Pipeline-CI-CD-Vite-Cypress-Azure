@@ -1,3 +1,12 @@
+> ### Confidentiality Notice
+> This repository contains an anonymized portfolio case study based on a real-world project.
+> 
+> Company names, client information, URLs, credentials, proprietary business logic, and sensitive implementation details have been removed or modified to protect confidentiality.
+> 
+> Any code snippets included are examples only and do not represent any protected production codebase.
+
+---
+
 # Automation Pipeline-Infrastructure Guidelines
 Azure DevOps pipeline directives for Cypress execution, reporting and environment management. 
 
