@@ -7,30 +7,26 @@
 
 ---
 
-# Automation Pipeline-Infrastructure Guidelines
-Azure DevOps pipeline directives for Cypress execution, reporting and environment management. 
-
 # Directivas de Infraestructura Inicial para Automatización
 
 ## Descripción
 
-Proyecto enfocado en la primera integración de suites automatizadas de Cypress para la empresa dentro de Azure DevOps Pipelines, permitiendo la ejecución automatizada de pruebas, administración de variables de entorno, generación de reportes y publicación de artifacts para equipos de desarrollo y QA.
+Adaptación de pruebas automatizadas con Cypress a CI/CD en Azure DevOps, enfocada en la primera integración de suites automatizadas dentro de pipelines de la organización, asegurando su ejecución en despliegues a entornos DEV y PROD y validando el flujo BUILD → TEST → DEPLOY mediante la definición de estándares de configuración YAML para una integración estable y confiable.
 
 ## Objetivo
 
-Estandarizar la ejecución de pruebas automatizadas dentro del pipeline CI/CD, facilitando la configuración de entornos, la generación de evidencia de ejecución y la escalabilidad de las suites de prueba.
+Estandarizar la ejecución de pruebas automatizadas dentro de la arquitectura de pipelines existente, facilitando la configuración de entornos, la generación de evidencia de ejecución y la incorporación de nuevas suites de prueba bajo un modelo de integración reutilizable y escalable.
+
 
 ## Tecnologías Utilizadas
 
 ```text
-Azure DevOps
-YAML Pipelines
-Cypress
-Mochawesome
-Node.js
-Azure Artifacts
-Docker Containers
-Cross-Browser Testing
+- Azure DevOps
+- YAML Pipelines
+- Cypress
+- Mochawesome
+- Azure Artifacts
+- Git / GitHub Workflow
 ```
 
 ## Mi Participación
@@ -45,12 +41,15 @@ Cross-Browser Testing
 
 ## Logros y Resultados
 
-* Ejecución automatizada de pruebas en Azure DevOps.
-* Eliminación de configuraciones manuales repetitivas.
-* Generación automática de evidencia de ejecución.
-* Reportes accesibles directamente desde el pipeline.
-* Estrategia preparada para ejecución multi-browser.
-* Documentación reutilizable para futuros proyectos.
+* Detecté que los pipelines YAML ya existían, pero estaban configurados de forma inestable.
+
+* Adapté suites automatizadas con Cypress para integrarse correctamente al flujo existente.
+
+* Validé la ejecución de pruebas automatizadas en entornos DEV y PROD.
+
+* Contribuí a establecer las bases para la integración repetible de suites de Cypress en Azure DevOps Pipelines.
+
+---
 
 ## Desafíos Técnicos
 
@@ -64,6 +63,37 @@ Las pruebas automatizadas dependían de variables que no estaban disponibles dur
 
 Se implementó la exportación controlada de variables desde Azure DevOps Pipeline Variables hacia Cypress mediante directivas documentadas dentro del YAML.
 
+**Ejemplo Visual**
+```yml
+ - stage: Test
+    displayName: "Run Cypress Tests"
+    dependsOn: Build
+    condition: succeeded()
+
+    jobs:
+      - job: CypressTests
+        displayName: "Execute Cypress E2E Tests"
+
+        pool:
+          [Redacted for Privacy]
+
+          - script: |
+              cd automated-tests
+              npm ci
+              npm install mochawesome
+            displayName: "Install Cypress dependencies"
+
+          - script: |
+              cd automated-tests
+              export CYPRESS_BASE_URL=http://localhost:8080
+              export CYPRESS_USER=$(CYPRESS_USER)
+              export CYPRESS_PASSWORD=$(CYPRESS_PASSWORD)
+              export CYPRESS_API_URL=$(CYPRESS_API_URL)
+              npx cypress run --reporter mochawesome --reporter-options "reportDir=cypress/reports,reportFilename=$(browser)Report,timestamp=mmddyyyy_HHMMss,overwrite=true,html=true,json=true"
+            displayName: "Run Cypress Tests"
+            continueOnError: true
+```
+
 
 ### Reporting Automatizado
 
@@ -75,27 +105,57 @@ Los resultados de ejecución no generaban evidencia accesible para análisis pos
 
 Se integró Mochawesome para generar reportes HTML y JSON publicados automáticamente como artifacts del pipeline.
 
-### Ejecución Multi-Browser
+```yml
+npx cypress run --reporter mochawesome --reporter-options "reportDir=cypress/reports,reportFilename=$(browser)Report,timestamp=mmddyyyy_HHMMss,overwrite=true,html=true,json=true"
+```
 
-**Problema**
-
-Se requería una estrategia escalable para validar compatibilidad entre navegadores.
-
-**Solución**
-
-Se documentó una implementación basada en matrices de Azure DevOps utilizando contenedores oficiales de Cypress para ejecutar pruebas en Chrome, Firefox y Edge.
-
-## Conclusión
-
-Esta implementación permite integrar suites Cypress dentro de arquitecturas CI/CD modernas, proporcionando trazabilidad, evidencia automática y una base escalable para futuras estrategias de automatización y ejecución multi-browser.
 
 ## Estrategias Adicionales Documentadas
 
-Además de la configuración base para automatización, se documentaron alternativas de implementación para escenarios futuros:
+Además de la configuración base para automatización, se documentaron alternativas de implementación para escenarios futuros. 
 
-### Ejecución Cross-Browser
+### *️⃣ Ejecución Cross-Browser (Opcional)
 
-Se definió una estrategia basada en matrices de Azure DevOps para ejecutar las mismas suites en múltiples navegadores utilizando contenedores oficiales de Cypress.
+Como parte de las directivas del framework, también se documentó una estrategia opcional para ejecutar las mismas suites de automatización en múltiples navegadores mediante matrices de Azure DevOps y contenedores oficiales de Cypress.
+
+
+```yml
+### 1. Add the Cypress Browser Container
+→ Under **Jobs → Pool**, immediately below:
+
+vmImage: $(vmImageName)
+
+Add:
+
+container: cypress/browsers:latest
+# Use latest, not version number
+```
+```yml
+### 2. Add the Matrix Strategy
+→ Immediately below `container: cypress/browsers:latest`, add:
+
+strategy:
+  matrix:
+    chromeRun:
+      browser: chrome
+    firefoxRun:
+      browser: firefox
+    edgeRun:
+      browser: edge
+```
+```yml
+### 3. Configure Browser Execution
+→ In the step where Cypress variables are exported and tests are executed, update the command:
+
+npx cypress run
+
+To:
+
+npx cypress run --browser $(browser)
+```
+> Con esta configuración, Azure DevOps genera automáticamente una ejecución independiente para cada navegador definido en la matriz.
+>
+> Como resultado, la misma suite de pruebas de Cypress se ejecuta en Chrome, Firefox y Edge sin necesidad de crear jobs adicionales ni duplicar código de automatización.
 
 **Navegadores considerados:**
 
@@ -103,23 +163,90 @@ Se definió una estrategia basada en matrices de Azure DevOps para ejecutar las 
 * Firefox
 * Edge
 
-### Reporting Multi-Browser
+→ Esta configuración no fue implementada como parte de la solución base, ya que la arquitectura utilizada durante el proyecto ejecutaba las pruebas contra una instancia local de la aplicación dentro del pipeline:
+```yml
+Build de la aplicación
+↓
+Publicación del build en localhost:8080
+↓
+Ejecución de pruebas Cypress
+↓
+Despliegue a Dev o Prod
+```
+
+→ En este tipo de escenarios, ejecutar varios navegadores en paralelo sobre una misma instancia local puede provocar inestabilidad o resultados inconsistentes durante la ejecución:
+> **Warning**
+>
+> Running multiple browsers in parallel against a single localhost instance may cause test instability or intermittent failures.
+
+Por ello, la estrategia quedó documentada como una guía de implementación futura para equipos que requieran ampliar la cobertura de validación o adaptar el framework a arquitecturas CI/CD más avanzadas donde las pruebas se ejecuten sobre ambientes previamente desplegados.
+
+
+---
+
+
+## Conclusión
+
+Esta implementación permite integrar suites Cypress dentro de arquitecturas CI/CD modernas, proporcionando trazabilidad, evidencia automática y una base escalable para futuras estrategias de automatización y ejecución multi-browser.
+
+
+### *️⃣ Reporting Multi-Browser (Opcional)
 
 Se documentó una configuración para generar artifacts independientes por navegador, permitiendo analizar resultados y evidencias de ejecución de forma aislada.
+```yml
+### 1. If Reporting and Cross-Browser execution will be used together
+- Add the `container`.
+- Add the `strategy`.
+```
+```yml
+### 2. Update the Cypress Command
+→ Adjust the execution command to include both the browser parameter and reporter configuration:
+--reporter mochawesome --reporter-options "reportDir=cypress/reports,reportFilename=$(browser)Report,timestamp=mmddyyyy_HHMMss,overwrite=true,html=true,json=true"
+```
+```yml
+### 3. Continue Pipeline Execution on Failures
+→ Immediately below:
+displayName: "Run Cypress Tests"
 
-### Escalabilidad de Pipeline
+add:
+continueOnError: true
 
-Las directivas fueron diseñadas para adaptarse a distintas arquitecturas CI/CD, incluyendo escenarios donde la validación automatizada ocurre antes o después del deployment.
+This is required because the following steps must run regardless of whether the tests pass or fail.
+```
+```yml
+### 4. Publish Browser-Specific Artifacts
+→ Add the following publish tasks, including the `$(browser)` suffix in the artifact names:
+
+- publish: $(System.DefaultWorkingDirectory)/automated-tests/cypress/reports
+  artifact: Report_$(browser)
+  condition: succeededOrFailed()
+
+- publish: $(System.DefaultWorkingDirectory)/automated-tests/cypress/screenshots
+  artifact: Screenshots_$(browser)
+  condition: succeededOrFailed()
+```
+
+### Escalabilidad del Pipeline
+
+Estas alternativas permiten reutilizar la misma base de automatización sin modificaciones significativas en las suites de prueba.
+
 
 **Ejemplos compatibles:**
 
-| Arquitectura                                                    |
-| --------------------------------------------------------------- |
-| Build → Test → Deploy                                           |
-| Build → Deploy → Test                                           |
-| Build Dev → Deploy Dev → Test → Build Prod → Deploy Prod → Test |
+| Arquitectura                                                                                |
+| ------------------------------------------------------------------------------------------- |
+| Build → Test → Deploy                                                                       |
+| Build → Deploy → Test                                                                       |
+| Build → Deploy Dev → Cross-Browser Test                                                     |
+| Build Dev → Deploy Dev → Cross-Browser Test → Build Prod → Deploy Prod → Cross-Browser Test |
 
-Estas alternativas permiten reutilizar la misma base de automatización sin modificaciones significativas en las suites de prueba.
+> Escenarios que ejecutan pruebas sobre ambientes previamente desplegados (en lugar de una instancia local de la aplicación) permiten incorporar fácilmente estrategias de validación Cross-Browser mediante matrices de Azure DevOps, reutilizando las mismas suites de automatización.
+>
+
+Este enfoque permite reutilizar la misma base de automatización en distintos flujos de integración y despliegue.
+
+En arquitecturas donde las pruebas se ejecutan después del deployment, la estrategia Cross-Browser documentada puede incorporarse fácilmente para ampliar la cobertura de validación sobre múltiples navegadores.
+
 
 **Screenshots**
 
