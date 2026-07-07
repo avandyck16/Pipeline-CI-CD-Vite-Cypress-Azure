@@ -190,8 +190,6 @@ D --> E[Generación de reportes]
 
 E --> F[Deploy Dev / Prod]
 ```
-## Integración CI/CD con Azure DevOps
-
 **Tabla de componentes del pipeline**
 
 | Componente | Función |
