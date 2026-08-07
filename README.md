@@ -1,3 +1,12 @@
+> #### Confidentiality Notice
+> This repository contains an anonymized portfolio case study based on a real-world project.
+> 
+> Company names, client information, URLs, credentials, proprietary business logic, and sensitive implementation details have been removed or modified to protect confidentiality.
+> 
+> Any code snippets included are examples only and do not represent any protected production codebase.
+
+---
+
 ### Pipeline CI/CD (Vite + Cypress + Azure Static Web Apps)
 
 Este framework de automatización fue integrado dentro del flujo CI/CD mediante pipelines YAML de Azure DevOps, incorporando la ejecución de pruebas Cypress E2E como un quality gate previo al despliegue.
@@ -29,7 +38,7 @@ El pipeline sigue esta lógica:
   - Solo si se hace merge a dev:
     - Se despliega a ambiente de desarrollo.
 
-![Pipeline-Diagram](diagram2.png)
+<img src="diagram2.png" alt="Pipeline-Diagram" width="65%">
 
 **¿Cuál es el impacto en calidad?**
 
@@ -390,6 +399,12 @@ Resultados principales:
 - Integración de automatización E2E dentro de procesos reales de entrega continua.
 
 
-<div style="text-align:center; color:#888; font-size:10px;">
-    QA Documentation | Axel Van Dyck | QA Engineer 
+<div align="center">
+
+---
+
+<sub>
+QA Documentation | Axel Van Dyck | QA Engineer
+</sub>
+
 </div>
