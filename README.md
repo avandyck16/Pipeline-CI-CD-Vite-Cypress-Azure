@@ -15,6 +15,21 @@ Este archivo YAML define un flujo automatizado que construye tu aplicación, cor
 </br>
 La idea es que cada vez que alguien hace un push o merge, el sistema se encargue de todo sin intervención manual.
 
+
+### Desafío Inicial
+
+El pipeline existente no diferenciaba correctamente entre validación de código y despliegue, provocando ejecuciones inconsistentes y falta de control sobre cuándo debía generarse un artefacto de producción.
+
+La estrategia implementada reorganizó el flujo para garantizar que:
+
+- Todas las ramas ejecuten validaciones sobre un build controlado de desarrollo.
+- Cypress funcione como quality gate previo al despliegue.
+- Production builds solamente sean generados después de una validación exitosa.
+- Los despliegues dependan del origen del cambio (`dev` o `main`).
+
+
+
+
 ### 🧭 Resumen del flujo
 
 El pipeline sigue esta lógica:
@@ -44,7 +59,7 @@ El pipeline sigue esta lógica:
 
 - Con esto evitamos que si se encuentra un bug, éste llegue a producción.
 - Se puede identificar rápidamente gracias a los reportes HTML.
-- Corrobora que las plataformas estén limpias desde los Pull Requests.
+- Detecta que los cambios no generen conflictos desde los Pull Requests.
 - Previene deploys a Dev y a Main en estos casos.
 
 ![CICD-Diagram](diagram1.png)
@@ -118,6 +133,7 @@ El pipeline sigue esta lógica:
               failTaskOnFailedTests: true
 
 ```
+> Nota: `continueOnError` fue utilizado para permitir la publicación de artifacts y evidencia incluso cuando una ejecución falla, facilitando análisis posterior. El control del quality gate puede ajustarse dependiendo de la política de despliegue definida.
 
 ### 🏗️ 1. Etapa: Build (Construcción de la app)
 
@@ -237,7 +253,6 @@ stages:
 
           - script: npm run build:dev
             displayName: "Build (dev)"
-            #condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
 
           - script: |
               echo "Listing workspace after build:"
@@ -371,17 +386,17 @@ Con esto garantizas que cada cambio pase por pruebas y que solo lo que está en 
 
 ---
 
-## Resultados de la Implementación
+## Logros y Resultados de la Implementación
 
 La integración permitió evolucionar desde una ejecución manual de pruebas hacia un proceso automatizado dentro del ciclo de entrega.
 
-Resultados principales:
+Logros y Resultados principales:
 
 → Implementación de ejecución Cypress como quality gate dentro del pipeline.
 
 → Separación entre validación DEV y generación de artefactos PROD.
 
-→ Reducción de ejecuciones innecesarias mediante condiciones por branch.
+→ Eliminación de despliegues prematuros mediante control de condiciones por branch.
 
 → Control automatizado del flujo Build → Test → Deploy.
 
