@@ -294,7 +294,7 @@ This prevents unnecessary production builds for Development changes and ensures 
 
 ---
 
-# Branch-Based Deployment
+
 
 ## Development Deployment
 
